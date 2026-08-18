@@ -25,7 +25,7 @@ def options() -> dict[str, object]:
         "higher_mode_system_types_2010": [item.value for item in HigherModeSystemType2010],
         "higher_mode_system_types_2020": [item.value for item in HigherModeSystemType2020],
         "importance_categories_2020": [item.value for item in ImportanceCategory],
-        "risk_categories_2010": ["Low", "Normal", "High", "Post-disaster"],
+        "risk_categories_2010": ["Low", "Normal", "High", "Post-Disaster"],
         "spectrum_interpolation_methods": [item.value for item in SpectrumInterpolationMethod],
         "site_classes_2010": ["A", "B", "C", "D", "E"],
         "material_standard_groups_2010": sorted({row["category_en"] for row in rows_2010}),
@@ -55,7 +55,7 @@ def localities_2010(province: str | None = Query(default=None)) -> dict[str, obj
     }
 
 
-@router.get("/nbc-2010/sfrs")
+@router.get("/nbcc-2010/sfrs")
 def sfrs_2010(material_standard_group: str | None = Query(default=None)) -> dict[str, object]:
     rows = nbcc_2010_sfrs_rows()
     if material_standard_group:
