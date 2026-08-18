@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import "./globals.css";
 import "./report-preview.css";
+import "./modal-input.css";
 
 export const metadata = {
   title: "CNBC Seismic Calculator",
