@@ -46,6 +46,20 @@ function parseList(value: string): number[] {
     .filter((item) => Number.isFinite(item));
 }
 
+function parseMatrix(value: string): number[][] {
+  return value
+    .split(/\r?\n/)
+    .map((row) => row.trim())
+    .filter(Boolean)
+    .map((row) => {
+      const values = row.split(",").map((item) => Number(item.trim()));
+      if (!values.length || values.some((item) => !Number.isFinite(item))) {
+        throw new Error("Mode-shape rows must contain only comma-separated finite numbers.");
+      }
+      return values;
+    });
+}
+
 function buildCommon(value: CommonForm) {
   const nStoreys = parseNumber(value.nStoreys);
   const elevations = parseList(value.elevations);
@@ -67,6 +81,7 @@ function buildCommon(value: CommonForm) {
 
 function build2010(value: Nbcc2010Form) {
   if (!value.sfrsIndex) throw new Error("Select an NBCC 2010 SFRS.");
+
   const hazard =
     value.hazardMode === "LOCALITY"
       ? {
@@ -79,9 +94,22 @@ function build2010(value: Nbcc2010Form) {
           sa_0_5: parseNumber(value.sa05),
           sa_1_0: parseNumber(value.sa10),
           sa_2_0: parseNumber(value.sa20),
-          pga: parseNumber(value.pga),
+          pga: optionalNumber(value.pga),
           hazard_source_id: value.hazardSourceId,
         };
+
+  const modalPeriods = value.responseSpectrumEnabled ? parseList(value.modalPeriods) : [];
+  const modeShapes = value.responseSpectrumEnabled ? parseMatrix(value.modeShapes) : [];
+  if (value.responseSpectrumEnabled && modalPeriods.length === 0) {
+    throw new Error("At least one modal period is required when response-spectrum analysis is enabled.");
+  }
+  if (
+    value.responseSpectrumEnabled &&
+    modeShapes.some((row) => row.length !== modalPeriods.length)
+  ) {
+    throw new Error("Each mode-shape row must contain one value per modal period.");
+  }
+
   return {
     hazard,
     site_class: value.siteClass,
@@ -94,7 +122,18 @@ function build2010(value: Nbcc2010Form) {
     irregularity_flags: value.irregularities,
     auto_detect_mass_irregularity: true,
     response_spectrum_enabled: value.responseSpectrumEnabled,
-    ta_mechanical_s: value.mechanicalPeriodEnabled ? optionalNumber(value.mechanicalPeriod) : null,
+    ta_mechanical_s: value.mechanicalPeriodEnabled
+      ? optionalNumber(value.mechanicalPeriod)
+      : null,
+    modal: value.responseSpectrumEnabled
+      ? {
+          modal_periods_s: modalPeriods,
+          mode_shapes: modeShapes,
+          combination_method: value.combinationMethod,
+          damping_ratio:
+            value.combinationMethod === "CQC" ? optionalNumber(value.dampingRatio) : null,
+        }
+      : null,
   };
 }
 
@@ -129,7 +168,12 @@ function build2020(value: Nbcc2020Form) {
   };
 }
 
-function buildRequest(mode: Mode, common: CommonForm, input2010: Nbcc2010Form, input2020: Nbcc2020Form) {
+function buildRequest(
+  mode: Mode,
+  common: CommonForm,
+  input2010: Nbcc2010Form,
+  input2020: Nbcc2020Form,
+) {
   const common_inputs = buildCommon(common);
   if (mode === "DUAL_COMPARISON") {
     return {
@@ -176,9 +220,11 @@ export default function CalculatorWorkspace() {
         setSfrs2020(systems2020);
         setInput2010((current) => ({
           ...current,
-          materialGroup: current.materialGroup || catalog.material_standard_groups_2010[0] || "",
+          materialGroup:
+            current.materialGroup || catalog.material_standard_groups_2010[0] || "",
           periodSystem: current.periodSystem || catalog.period_system_types[0] || "",
-          lateralSystem: current.lateralSystem || catalog.higher_mode_system_types_2010[0] || "",
+          lateralSystem:
+            current.lateralSystem || catalog.higher_mode_system_types_2010[0] || "",
         }));
         setInput2020((current) => ({
           ...current,
@@ -188,7 +234,9 @@ export default function CalculatorWorkspace() {
           sfrsId: current.sfrsId || systems2020[0]?.id || "",
         }));
       })
-      .catch((cause) => setError(cause instanceof Error ? cause.message : "Catalog load failed."));
+      .catch((cause) =>
+        setError(cause instanceof Error ? cause.message : "Catalog load failed."),
+      );
   }, []);
 
   useEffect(() => {
@@ -205,24 +253,41 @@ export default function CalculatorWorkspace() {
               : "",
         }));
       })
-      .catch((cause) => setError(cause instanceof Error ? cause.message : "SFRS load failed."));
+      .catch((cause) =>
+        setError(cause instanceof Error ? cause.message : "SFRS load failed."),
+      );
   }, [input2010.materialGroup]);
 
   const provinces = useMemo(
     () => Array.from(new Set(localities.map((item) => item.province_code))).sort(),
     [localities],
   );
+
   useEffect(() => {
     if (input2010.hazardMode !== "LOCALITY") return;
     if (!input2010.province && provinces[0]) {
       setInput2010((current) => ({ ...current, province: provinces[0] }));
       return;
     }
-    const candidates = localities.filter((item) => item.province_code === input2010.province);
-    if (input2010.province && !candidates.some((item) => item.locality === input2010.locality)) {
-      setInput2010((current) => ({ ...current, locality: candidates[0]?.locality ?? "" }));
+    const candidates = localities.filter(
+      (item) => item.province_code === input2010.province,
+     );
+    if (
+      input2010.province &&
+      !candidates.some((item) => item.locality === input2010.locality)
+    ) {
+      setInput2010((current) => ({
+        ...current,
+        locality: candidates[0]?.locality ?? "",
+      }));
     }
-  }, [input2010.hazardMode, input2010.province, input2010.locality, localities, provinces]);
+  }, [
+    input2010.hazardMode,
+    input2010.province,
+    input2010.locality,
+    localities,
+    provinces,
+  ]);
 
   async function calculate() {
     setLoading(true);
@@ -230,7 +295,14 @@ export default function CalculatorWorkspace() {
     setPayload(null);
     try {
       const request = buildRequest(mode, common, input2010, input2020);
-      setPayload(await runCalculation(request));
+      const result = await runCalculation(request);
+      setPayload({
+        ...result,
+        calculation_request:
+          result.calculation_request && typeof result.calculation_request === "object"
+            ? result.calculation_request
+            : (request as Record<string, unknown>),
+      });
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Calculation failed.");
     } finally {
@@ -255,17 +327,19 @@ export default function CalculatorWorkspace() {
       <div className="releaseBanner">
         <strong>NBCC 2020 production approval is blocked.</strong>
         <span>
-          An approved 2020 hazard source/location benchmark and unresolved engineering hold points
-          must be closed before company-approved production release.
+          An approved 2020 hazard source/location benchmark and unresolved engineering hold
+          points must be closed before company-approved production release.
         </span>
       </div>
 
       <nav className="modeTabs" aria-label="Calculation mode">
-        {([
-          ["NBCC_2010", "NBCC 2010"],
-          ["NBCC_2020", "NBCC 2020"],
-          ["DUAL_COMPARISON", "Dual comparison"],
-        ] as Array<[Mode, string]>).map(([value, label]) => (
+        {(
+          [
+            ["NBCC_2010", "NBCC 2010"],
+            ["NBCC_2020", "NBCC 2020"],
+            ["DUAL_COMPARISON", "Dual comparison"],
+          ] as Array<[Mode, string]>
+        ).map(([value, label]) => (
           <button
             type="button"
             className={mode === value ? "active" : ""}
@@ -284,35 +358,11 @@ export default function CalculatorWorkspace() {
             note="Only geometry and load data demonstrably common to the same building model are shared between editions."
           >
             <div className="fieldGrid">
-              <Field
-                label="Building height Hn"
-                value={common.hn}
-                unit="m"
-                onChange={(hn) => setCommon({ ...common, hn })}
-              />
-              <Field
-                label="Number of storeys"
-                value={common.nStoreys}
-                onChange={(nStoreys) => setCommon({ ...common, nStoreys })}
-              />
-              <Field
-                label="Plan dimension Dn"
-                value={common.dn}
-                unit="m"
-                onChange={(dn) => setCommon({ ...common, dn })}
-              />
-              <Field
-                label="Storey elevations"
-                value={common.elevations}
-                unit="m, comma-separated"
-                onChange={(elevations) => setCommon({ ...common, elevations })}
-              />
-              <Field
-                label="Storey weights"
-                value={common.weights}
-                unit="kN, comma-separated"
-                onChange={(weights) => setCommon({ ...common, weights })}
-              />
+              <Field label="Building height Hn" value={common.hn} unit="m" onChange={(hn) => setCommon({ ...common, hn })} />
+              <Field label="Number of storeys" value={common.nStoreys} onChange={(nStoreys) => setCommon({ ...common, nStoreys })} />
+              <Field label="Plan dimension Dn" value={common.dn} unit="m" onChange={(dn) => setCommon({ ...common, dn })} />
+              <Field label="Storey elevations" value={common.elevations} unit="m, comma-separated" onChange={(elevations) => setCommon({ ...common, elevations })} />
+              <Field label="Storey weights" value={common.weights} unit="kN, comma-separated" onChange={(weights) => setCommon({ ...common, weights })} />
             </div>
           </FormSection>
 
@@ -351,6 +401,7 @@ export default function CalculatorWorkspace() {
               {loading
                 ? "Calculating…"
                 : mode === "DUAL_COMPARISON"
+
                   ? "Run dual comparison"
                   : "Run calculation"}
             </button>
@@ -362,14 +413,21 @@ export default function CalculatorWorkspace() {
             <p className="eyebrow">Edition separation</p>
             <h3>No cross-edition engineering data</h3>
             <p>
-              Hazard, SFRS, higher-mode data, restrictions, and formula logic remain edition-scoped.
+              Hazard, SFRS, higher-mode data, restrictions, and formula logic remain
+              edition-scoped.
             </p>
           </div>
           <div className="sideCard">
             <p className="eyebrow">Safety</p>
             <h3>Warnings are never paywalled</h3>
+            <p>Failed checks, invalid inputs, limitations, and applicability messages remain visible.</p>
+          </div>
+          <div className="sideCard">
+            <p className="eyebrow">Dynamic input</p>
+            <h3>Modal data stays external</h3>
             <p>
-              Failed checks, invalid inputs, limitations, and applicability messages remain visible.
+              When response-spectrum analysis is enabled, the UI only accepts modal data
+              produced by the structural analysis model and passes it unchanged to the validated engine.
             </p>
           </div>
         </aside>
