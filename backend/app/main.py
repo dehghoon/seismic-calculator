@@ -60,8 +60,9 @@ def run_calculation(request: CalculationRequest) -> dict[str, Any]:
 
 @app.post("/api/v1/reports/preview")
 def report_preview(request: CalculationRequest) -> dict[str, Any]:
+    calculation_request = request.model_dump(exclude_none=True)
     payload = calculate(to_engine_request(request)).to_dict()
-    return build_preview(payload)
+    return build_preview(payload, calculation_request)
 
 
 @app.post("/api/v1/reports/pdf")
