@@ -128,11 +128,12 @@ export default function Nbcc2010Panel({
           onChange={(item) => set("mechanicalPeriodEnabled", item)}
         />
         <Toggle
-          label="Response-spectrum metadata supplied"
+          label="Response-spectrum analysis data supplied"
           checked={value.responseSpectrumEnabled}
           onChange={(item) => set("responseSpectrumEnabled", item)}
         />
       </div>
+
       {value.mechanicalPeriodEnabled ? (
         <div className="fieldGrid sectionGap">
           <Field
@@ -141,6 +142,51 @@ export default function Nbcc2010Panel({
             unit="s"
             onChange={(item) => set("mechanicalPeriod", item)}
           />
+        </div>
+      ) : null}
+
+      {value.responseSpectrumEnabled ? (
+        <div className="modalInputBlock">
+          <div className="sectionTitle compact">
+            <h3>Modal response data</h3>
+            <p>
+              Enter analysis-model results only. The frontend does not derive modal periods,
+              mode shapes, combination results, or damping.
+            </p>
+          </div>
+          <div className="fieldGrid">
+            <Field
+              label="Modal periods"
+              value={value.modalPeriods}
+              unit="s, comma-separated"
+              onChange={(item) => set("modalPeriods", item)}
+            />
+            <SelectField
+              label="Combination method"
+              value={value.combinationMethod}
+              onChange={(item) => set("combinationMethod", item as "SRSS" | "CQC")}
+              options={[
+                ["SRSS", "SRSS"],
+                ["CQC", "CQC"],
+              ]}
+            />
+            {value.combinationMethod === "CQC" ? (
+              <Field
+                label="Damping ratio"
+                value={value.dampingRatio}
+                onChange={(item) => set("dampingRatio", item)}
+              />
+            ) : null}
+          </div>
+          <label className="field matrixField">
+            <span>Mode shapes</span>
+            <textarea
+              value={value.modeShapes}
+              onChange={(event) => set("modeShapes", event.target.value)}
+              placeholder={"One storey per line; comma-separated modal ordinates.\nExample:\n1.0, 0.4\n0.7, -0.8\n0.3, 1.0"}
+            />
+            <em>Rows must match n_storeys. Columns must match the number of modal periods.</em>
+          </label>
         </div>
       ) : null}
 
