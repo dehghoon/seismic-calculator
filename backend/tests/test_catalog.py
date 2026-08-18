@@ -29,7 +29,7 @@ def test_sfrs_catalogs_are_separate_by_edition():
     assert response_2010.status_code == 200
     assert response_2020.status_code == 200
     item_2010 = response_2010.json()["items"][0]
-    item_2020 = response_20220.json()["items"][0]
+    item_2020 = response_2020.json()["items"][0]
     assert "index" in item_2010
     assert "id" in item_2020
     assert {"SC1", "SC2", "SC3", "SC4"} <= set(item_2020)
