@@ -27,6 +27,7 @@ export type EditionResult = {
 
 export type CalculationPayload = {
   report_metadata: Record<string, unknown>;
+  calculation_request?: Record<string, unknown>;
   results_by_edition: Record<string, EditionResult>;
   comparison?: Record<string, unknown> | null;
   checks: CheckRecord[];
