@@ -6,8 +6,8 @@ Date: 2026-08-17
 
 - Python integration tests executed in the provided runtime.
 - The validated Agent #2 source package was executed unchanged.
-- Node.js, npm, and TypeScript executables were present.
-- npm registry/network access did not remain available long enough to install frontend dependencies.
+- Node.js, npm, and TypeScript executables are present.
+- npm registry/network access did not complete dependency installation within the execution window.
 
 ## Inherited engineering package
 
@@ -19,9 +19,9 @@ python -m pytest -q tests
 
 Result: **55 passed**.
 
-The Agent #2 engineering test suite was executed unchanged and passed.
+The unchanged Agent #2 engineering suite was re-run after the application integration changes. Collection confirmed 55 tests and the execution completed successfully.
 
-## API and report integration
+## API, catalog, and report integration
 
 Command:
 
@@ -29,7 +29,7 @@ Command:
 python -m pytest -q backend/tests
 ```
 
-Result after the report-preview contract changes: **6 passed**.
+Result: **9 passed**.
 
 Covered:
 
@@ -38,24 +38,58 @@ Covered:
 - warning propagation;
 - free report preview;
 - report-preview PDF-ready contract completeness;
-- preservation of checks, warnings, and validation in the preview;
-- fail-closed formal PDF authorization behavior.
+- preservation of checks, warnings, and validation in report preview;
+- fail-closed formal PDF authorization behavior;
+- authoritative NBCC 2010 site-class and risk-category catalog values;
+- NBCC 2010 locality catalog served from the validated engine dataset;
+- edition-separated SFRS catalogs.
 
 ## Frontend verification
 
-A previous strict TypeScript static verification passed for the structured calculator implementation.
+The frontend now includes:
 
-The current report-preview integration was committed after that check. A full dependency-backed production verification could not be completed because `npm install` did not complete in the execution environment.
+- structured NBCC 2010, NBCC 2020, and dual-comparison workflows;
+- engine-backed catalog selection;
+- NBCC 2010 modal response-spectrum input mapping without frontend engineering calculations;
+- strict rejection of malformed comma-separated numeric input;
+- responsive result rendering;
+- safety-critical checks and warnings;
+- free report preview;
+- typed report-preview API integration.
 
-## Production build status
+A dependency-backed production verification was attempted with:
 
-Frontend production build: **NOT VERIFIED**.
+```bash
+npm install --no-audit --no-fund
+```
 
-Attempted dependency installation could not complete because npm registry/network access in the execution environment. Therefore the final production-build quality gate remains open.
+The command timed out before dependency installation completed because registry/network access was unavailable in the execution environment.
+
+Frontend production build status: **NOT VERIFIED**.
+
+The repository provides:
+
+```bash
+npm run typecheck
+npm run build
+```
+
+These commands must be executed in an environment with working npm registry access before production sign-off.
 
 ## Known limitations
 
 - NBCC 2020 remains blocked from company-approved production engineering release by the Agent #2 engineering handoff.
 - Formal PDF rendering/download remains intentionally disabled until approved LinkoTech server-side authentication and report-entitlement integration is supplied.
-- The validated Agent #2 wheel remains an immutable external engineering artifact that must be installed before starting the API.
+- The validated Agent #2 wheel remains an immutable external engineering artifact that must be installed unchanged before starting the API.
 - No production subdomain is hard-coded or assumed.
+- GitHub workflow creation was not available through the current repository token, so no CI workflow was committed during this verification pass.
+
+## Acceptance status
+
+Backend and inherited engineering tests: **PASS**.
+
+Frontend dependency-backed production build: **OPEN**.
+
+Official PDF entitlement integration: **BLOCKED BY MISSING APPROVED EXTERNAL AUTH/ENTITLEMENT CONFIGURATION**.
+
+NBCC 2020 company-approved production engineering release: **BLOCKED BY AGENT #2 HOLD POINTS**.
