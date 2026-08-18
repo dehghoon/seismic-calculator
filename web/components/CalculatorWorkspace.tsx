@@ -40,10 +40,15 @@ function optionalNumber(value: string): number | null {
 }
 
 function parseList(value: string): number[] {
-  return value
-    .split(",")
-    .map((item) => Number(item.trim()))
-    .filter((item) => Number.isFinite(item));
+  const tokens = value.split(",").map((item) => item.trim());
+  if (!tokens.length || tokens.some((item) => item.length === 0)) {
+    throw new Error("Comma-separated numeric lists must not contain empty values.");
+  }
+  const values = tokens.map((item) => Number(item));
+  if (values.some((item) => !Number.isFinite(item))) {
+    throw new Error("Comma-separated numeric lists must contain only finite numbers.");
+  }
+  return values;
 }
 
 function parseMatrix(value: string): number[][] {
@@ -60,7 +65,7 @@ function parseMatrix(value: string): number[][] {
     });
 }
 
-function buildCommon(value: CommonForm) {
+function buildCommon(value: CommonForm)) {
   const nStoreys = parseNumber(value.nStoreys);
   const elevations = parseList(value.elevations);
   const weights = parseList(value.weights);
@@ -215,7 +220,7 @@ export default function CalculatorWorkspace() {
   useEffect(() => {
     Promise.all([getCatalogOptions(), getLocalities2010(), getSfrs2020()])
       .then(([catalog, localityRows, systems2020]) => {
-        setOptions(catalog);
+        setOptions(Catalog);
         setLocalities(localityRows);
         setSfrs2020(systems2020);
         setInput2010((current) => ({
@@ -271,7 +276,7 @@ export default function CalculatorWorkspace() {
     }
     const candidates = localities.filter(
       (item) => item.province_code === input2010.province,
-     );
+    );
     if (
       input2010.province &&
       !candidates.some((item) => item.locality === input2010.locality)
@@ -401,7 +406,6 @@ export default function CalculatorWorkspace() {
               {loading
                 ? "Calculating…"
                 : mode === "DUAL_COMPARISON"
-
                   ? "Run dual comparison"
                   : "Run calculation"}
             </button>
