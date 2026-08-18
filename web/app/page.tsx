@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ChangeEvent } from "react";
 import { runCalculation, type CalculationPayload } from "../lib/api";
 
 const sampleRequest = {
@@ -98,7 +98,7 @@ export default function Home() {
             <div><p className="eyebrow">Request</p><h2>Calculation input</h2></div>
             <button onClick={() => setRequestText(JSON.stringify(sampleRequest, null, 2))}>Reset sample</button>
           </div>
-          <textarea aria-label="Calculation request JSON" value={requestText} onChange={(e) => setRequestText(e.target.value)} spellCheck={false} />
+          <textarea aria-label="Calculation request JSON" value={requestText} onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setRequestText(e.target.value)} spellCheck={false} />
           <button className="primary" onClick={calculate} disabled={loading}>{loading ? "Calculating…" : "Run calculation"}</button>
           {error && <pre className="error">{error}</pre>}
         </section>
