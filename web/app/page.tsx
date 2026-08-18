@@ -1,5 +1,5 @@
-import EngineeringCalculator from "../components/EngineeringCalculator";
+import CalculatorWorkspace from "../components/CalculatorWorkspace";
 
 export default function Home() {
-  return <EngineeringCalculator />;
+  return <CalculatorWorkspace />;
 }
