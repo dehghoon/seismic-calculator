@@ -6,8 +6,8 @@ Web/API integration for the validated `cnbc-seismic-dual-edition` engineering pa
 
 - `backend/`: FastAPI adapter around the validated Agent #2 engine.
 - `web/`: Next.js frontend consuming only the REST API.
-- `vendor/`: immutable validated engineering wheel supplied with the project handoff.
-- `docs/`: architecture and release notes.
+- `docs/`: architecture and deployment notes.
+- The validated engineering wheel is supplied separately and must be installed unchanged before starting the API.
 
 The frontend never recalculates engineering results. NBCC 2010 and NBCC 2020 remain independent engine branches. The dual comparison is informational and non-governing.
 
@@ -18,6 +18,7 @@ The frontend never recalculates engineering results. NBCC 2010 and NBCC 2020 rem
 ```bash
 python -m venv .venv
 source .venv/bin/activate
+pip install ./cnbc_seismic_dual_edition-0.1.0-py3-none-any.whl
 pip install -r backend/requirements.txt
 uvicorn backend.app.main:app --reload --port 8000
 ```
@@ -29,6 +30,16 @@ cd web
 npm install
 npm run dev
 ```
+
+Set `NEXT_PUBLIC_API_BASE_URL` to the API origin.
+
+## API endpoints
+
+- `GET /health`
+- `GET /version`
+- `POST /api/v1/calculations`
+- `POST /api/v1/reports/preview`
+- `POST /api/v1/reports/pdf` — fails closed until approved authentication and report entitlement integration is configured.
 
 ## Engineering release status
 
