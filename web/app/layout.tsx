@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata = {
@@ -5,7 +6,7 @@ export const metadata = {
   description: "NBCC 2010 / NBCC 2020 dual-edition seismic calculation interface",
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <html lang="en">
       <body>{children}</body>
