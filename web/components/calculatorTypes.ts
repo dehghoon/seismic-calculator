@@ -27,6 +27,10 @@ export type Nbcc2010Form = {
   mechanicalPeriodEnabled: boolean;
   mechanicalPeriod: string;
   responseSpectrumEnabled: boolean;
+  modalPeriods: string;
+  modeShapes: string;
+  combinationMethod: "SRSS" | "CQC";
+  dampingRatio: string;
   irregularities: Record<number, boolean>;
 };
 
@@ -83,7 +87,13 @@ export const NBCC_2010_INITIAL: Nbcc2010Form = {
   mechanicalPeriodEnabled: false,
   mechanicalPeriod: "",
   responseSpectrumEnabled: false,
-  irregularities: Object.fromEntries(Array.from({ length: 8 }, (_, index) => [index + 1, false])),
+  modalPeriods: "",
+  modeShapes: "",
+  combinationMethod: "SRSS",
+  dampingRatio: "",
+  irregularities: Object.fromEntries(
+    Array.from({ length: 8 }, (_, index) => [index + 1, false]),
+  ),
 };
 
 export const NBCC_2020_INITIAL: Nbcc2020Form = {
@@ -107,7 +117,9 @@ export const NBCC_2020_INITIAL: Nbcc2020Form = {
   mechanicalPeriod: "",
   qg: "",
   qy: "",
-  nonorthonalSfrs: false,
+  nonorthogonalSfrs: false,
   continuousWoodOver4Storeys: false,
-  irregularities: Object.fromEntries(Array.from({ length: 10 }, (_, index) => [index + 1, false])),
+  irregularities: Object.fromEntries(
+    Array.from({ length: 10 }, (_, index) => [index + 1, false]),
+  ),
 };
