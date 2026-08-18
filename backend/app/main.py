@@ -10,6 +10,7 @@ from cnbc_seismic_dual_edition import calculate, validate_source_package
 from cnbc_seismic_dual_edition.exceptions import InputValidationError
 
 from .adapter import to_engine_request
+from .catalog import router as catalog_router
 from .reporting import build_preview
 from .schemas import CalculationRequest
 
@@ -18,6 +19,7 @@ app = FastAPI(
     version="0.1.0",
     description="FastAPI adapter for the validated NBCC 2010 / NBCC 2020 calculation engine.",
 )
+app.include_router(catalog_router)
 
 allowed_origins = [value.strip() for value in os.getenv("API_ALLOWED_ORIGINS", "http://localhost:3000").split(",") if value.strip()]
 app.add_middleware(
