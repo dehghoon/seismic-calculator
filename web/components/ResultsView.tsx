@@ -1,6 +1,12 @@
 "use client";
 
-import type { CalculationPayload, EditionResult } from "../lib/api";
+import { useState } from "react";
+import {
+  getReportPreview,
+  type CalculationPayload,
+  type EditionResult,
+  type ReportPreviewPayload,
+} from "../lib/api";
 
 function ScalarTable({ title, value }: { title: string; value: unknown }) {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
@@ -68,14 +74,10 @@ function SpectrumPlot({ spectrum }: { spectrum: unknown }) {
         {points.map(([period, value]) => (
           <g key={period}>
             <circle cx={x(period)} cy={y(value)} r="4" className="spectrumPoint" />
-            <text x={x(period)} y={height - 12} textAnchor="middle">
-              {period}
-            </text>
-            <text x={x(period)} y={Math.max(14, y(value) - 9)} textAnchor="middle">
-              {value.toFixed(3)}
-            </text>
+            <text x={x(period)} y={height - 12} textAnchor="middle">{period}</text>
+            <text x={x(period)} y={Math.max(14, y(value) - 9)} textAnchor="middle">{value.toFixed(3)}</text>
           </g>
-        ))}
+         ))}
       </svg>
     </div>
   );
@@ -93,20 +95,15 @@ function StoreyTable({ output }: { output: Record<string, unknown> }) {
       <div className="tableScroll">
         <table>
           <thead>
-            <tr>
-              <th>Level</th>
-              <th>Fx (kN)</th>
-              <th>Jx</th>
-              <th>Mx (kN·m)</th>
-            </tr>
+            <tr><th>Level</th><th>Fx (kN)</th><th>Jx</th><th>Mx (kN·m)</th></tr>
           </thead>
           <tbody>
             {fx.map((value, index) => (
               <tr key={index}>
                 <td>{index + 1}</td>
                 <td>{value.toFixed(3)}</td>
-                <td>{jx[index]?.toFixed?.(3) ?? "—"}</td>
-                <td>{mx[index]?.toFixed?.(3) ?? "—"}</td>
+                <td>{jx[index]?.toFixed?.(3) ?? "—"</td>
+                <td>{mx[index]?.toFixed?.(3) ?? "—"</td>
               </tr>
             ))}
           </tbody>
@@ -142,17 +139,103 @@ function EditionSection({ edition, result }: { edition: string; result: EditionR
   );
 }
 
+function ReportPreview({ payload }: { payload: CalculationPayload }) {
+  const [preview, setPreview] = useState<ReportPreviewPayload | null>(null);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const request = payload.calculation_request;
+  if (!request || typeof request !== "object") {
+    return (
+      <section className="reportPreviewCard">
+        <div className="cardHeading">
+          <h3>Calculation report preview</h3><span>Unavailable</span>
+        </div>
+        <p>The validated engine payload did not expose the calculation request required by the report preview contract.</p>
+      </section>
+    );
+  }
+
+  async function openPreview() {
+    setLoading(true);
+    setError("");
+    try {
+      setPreview(await getReportPreview(request));
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Report preview failed.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <section className="reportPreviewCard">
+      <div className="reportPreviewHeader">
+        <div>
+          <p className="eyebrow">Free report preview</p>
+          <h2>Calculation report</h2>
+          <p>Preview content preserves the same engineering results, checks, warnings, limitations, and traceability returned by the validated engine.</p>
+        </div>
+        <button type="button" className="previewButton" onClick={openPreview} disabled={loading}>
+          {loading ? "Loading preview…" : preview ? "Refresh preview" : "Open report preview"}
+        </button>
+      </div>
+
+      {error ? <pre className="inlineError">{error}</pre> : null}
+
+      {preview ? (
+        <div className="previewDocument">
+          <div className="previewControl">
+            <div>
+              <strong>{String(preview.report_metadata.report_title ?? "Seismic Force Calculation")}</strong>
+              <span>Report Specification v{String(preview.report_metadata.report_specification_version ?? "3.0")}</span>
+            </div>
+            <div><span>Review status</span><strong>{String(preview.report_metadata.review_status ?? "Draft")}</strong></div>
+            <div><span>Contract</span><strong>{preview.contract_status.complete ? "Complete" : "Incomplete"}</strong></div>
+          </div>
+
+          <div className="previewNotice">
+            <strong>Official PDF access</strong>
+            <span>
+              {preview.official_pdf_available
+                ? "Available through an authorized server-side entitlement."
+                : "Not enabled. Formal PDF generation remains locked until approved authentication and report entitlement integration is configured."}
+            </span>
+          </div>
+
+          <div className="previewSections">
+            {preview.section_order.map((section, index) => (
+              <div className="previewSectionRow" key={section}>
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                <strong>{section}</strong>
+              </div>
+            ))}
+          </div>
+
+          <div className="previewMetrics">
+            <div><strong>{preview.checks.length}</strong><span>Checks</span></div>
+            <div><strong>{preview.warnings.length}</strong><span>Warnings</span></div>
+            <div><strong>{preview.formula_trace.length}</strong><span>Formula trace records</span></div>
+            <div><strong>{preview.code_references.length}</strong><span>Code references</span></div>
+          </div>
+
+          <details className="rawPayload">
+            <summary>Report-ready data contract</summary>
+            <pre>{JSON.stringify(preview, null, 2)}</pre>
+          </details>
+          <p className="reportDisclaimer">{preview.footer_disclaimer}</p>
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
 export default function ResultsView({ payload }: { payload: CalculationPayload }) {
   return (
     <section className="resultsArea">
       <div className="resultsTitle">
-        <div>
-          <p className="eyebrow">Engineering review</p>
-          <h2>Results, checks, and limitations</h2>
-        </div>
-        <span>
-          {payload.checks.length} checks · {payload.warnings.length} warnings
-        </span>
+        <div><p className="eyebrow">Engineering review</p><h2>Results, checks, and limitations</h2></div>
+        <span>{payload.checks.length} checks · {payload.warnings.length} warnings</span>
       </div>
 
       {Object.entries(payload.results_by_edition).map(([edition, result]) => (
@@ -160,52 +243,29 @@ export default function ResultsView({ payload }: { payload: CalculationPayload }
       ))}
 
       {payload.comparison ? (
-        <div className="comparisonCard">
-          <div className="cardHeading">
-            <h3>2010 vs 2020 comparison</h3>
-            <span>Informational · non-governing</span>
-          </div>
-          <pre>{JSON.stringify(payload.comparison, null, 2)}</pre>
-        </div>
+        <div className="comparisonCard"><div className="cardHeading"><h3>2010 vs 2020 comparison</h3><span>Informational · non-governing</span></div><pre>{JSON.stringify(payload.comparison, null, 2)}</pre></div>
       ) : null}
 
       <div className="reviewGrid">
-        <div>
-          <h3>Checks</h3>
-          {payload.checks.map((check, index) => (
-            <article className={`messageCard ${String(check.status ?? "").toLowerCase()}`} key={index}>
-              <strong>
-                {String(check.status ?? "CHECK")} · {check.edition ?? ""}
-              </strong>
-              <p>{check.message ?? JSON.stringify(check)}</p>
-              <small>
-                {check.formula_id ?? check.formula_ids?.join(", ") ?? ""}{" "}
-                {check.code_reference ?? check.code_reference_ids?.join(", ") ?? ""}
-              </small>
-            </article>
-          ))}
-        </div>
-        <div>
-          <h3>Warnings and limitations</h3>
-          {payload.warnings.map((warning, index) => (
-            <article className="messageCard warning" key={index}>
-              <strong>
-                {warning.severity ?? "WARNING"} · {warning.edition ?? ""}
-              </strong>
-              <p>{warning.message ?? JSON.stringify(warning)}</p>
-              <small>
-                {warning.formula_id ?? warning.formula_ids?.join(", ") ?? ""}{" "}
-                {warning.code_reference ?? warning.code_reference_ids?.join(", ") ?? ""}
-              </small>
-            </article>
-          ))}
-        </div>
+        <div><h3>Checks</h3>{payload.checks.map((check, index) => (
+          <article className={`messageCard ${String(check.status ?? "").toLowerCase()}`} key={index}>
+            <strong>{String(check.status ?? "CHECK")} · {check.edition ?? ""}</strong>
+            <p>{check.message ?? JSON.stringify(check)}</p>
+            <small>{check.formula_id ?? check.formula_ids?.join(", ") ?? ""}{" "}{check.code_reference ?? check.code_reference_ids?.join(", ") ?? ""}</small>
+          </article>
+        ))}</div>
+        <div><h3>Warnings and limitations</h3>{payload.warnings.map((warning, index) => (
+          <article className="messageCard warning" key={index}>
+            <strong>{warning.severity ?? "WARNING"} · {warning.edition ?? ""}</strong>
+            <p>{warning.message ?? JSON.stringify(warning)}</p>
+            <small>{warning.formula_id ?? warning.formula_ids?.join(", ") ?? ""}{" "}{warning.code_reference ?? warning.code_reference_ids?.join(", ") ?? ""}</small>
+          </article>
+        ))}</div>
       </div>
 
-      <details className="rawPayload">
-        <summary>Traceable calculation payload</summary>
-        <pre>{JSON.stringify(payload, null, 2)}</pre>
-      </details>
+      <ReportPreview payload={payload} />
+
+      <details className="rawPayload"><summary>Traceable calculation payload</summary><pre>{JSON.stringify(payload, null, 2)}</pre></details>
     </section>
   );
 }
