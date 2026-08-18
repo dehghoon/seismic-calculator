@@ -1,0 +1,56 @@
+.modalInputBlock {
+  margin-top: 16px;
+  border: 1px solid #dee6ed;
+  border-radius: 12px;
+  background: #f9fbfd;
+  padding: 16px;
+}
+
+.sectionTitle.compact {
+  margin-bottom: 12px;
+}
+
+.sectionTitle.compact h3 {
+  margin: 0 0 4px;
+  font-size: 0.95rem;
+}
+
+.sectionTitle.compact p {
+  margin: 0;
+  color: #67798c;
+  font-size: 0.82rem;
+  line-height: 1.47;
+}
+
+.matrixField {
+  display: grid;
+  gap: 6px;
+  margin-top: 12px;
+  color: #516274;
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.matrixField textarea {
+  width: 100%;
+  min-height: 120px;
+  resize: vertical;
+  border: 1px solid #cad6df;
+  border-radius: 9px;
+  background: #fff;
+  color: #17283a;
+  padding: 10px;
+  font: inherit;
+  line-height: 1.45;
+}
+
+.matrixField textarea:focus {
+  outline: 2px solid #9fc4dc;
+  outline-offset: 1px;
+}
+
+.matrixField em {
+  color: #76889a;
+  font-size: 0.72rem;
+  font-style: normal;
+}
