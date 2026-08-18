@@ -1,4 +1,3 @@
-
 export type CheckRecord = {
   edition?: string;
   status?: string;
@@ -36,7 +35,33 @@ export type CalculationPayload = {
   formula_trace?: Array<Record<string, unknown>>;
   code_references?: Array<Record<string, unknown>>;
   display_rules?: Record<string, unknown>;
+  presentation_elements?: Array<Record<string, unknown>>;
   [key: string]: unknown;
+};
+
+export type ReportPreviewPayload = {
+  report_metadata: Record<string, unknown>;
+  calculation_request: Record<string, unknown>;
+  common_inputs: Record<string, unknown>;
+  edition_inputs: Record<string, unknown>;
+  results_by_edition: Record<string, EditionResult>;
+  comparison?: Record<string, unknown> | null;
+  checks: CheckRecord[];
+  warnings: WarningRecord[];
+  formula_trace: Array<Record<string, unknown>>;
+  code_references: Array<Record<string, unknown>>;
+  validation: Record<string, unknown>;
+  display_rules: Record<string, unknown>;
+  presentation_elements: Array<Record<string, unknown>>;
+  section_order: string[];
+  formal_pdf_entitlement_required: boolean;
+  official_pdf_available: boolean;
+  footer_disclaimer: string;
+  contract_status: {
+    required_fields: string[];
+    missing_fields: string[];
+    complete: boolean;
+  };
 };
 
 export type CatalogOptions = {
@@ -103,6 +128,15 @@ export async function runCalculation(
   request: unknown,
 ): Promise<CalculationPayload> {
   return requestJson<CalculationPayload>("/api/v1/calculations", {
+    method: "POST",
+    body: JSON.stringify(request),
+  });
+}
+
+export async function getReportPreview(
+  request: unknown,
+): Promise<ReportPreviewPayload> {
+  return requestJson<ReportPreviewPayload>("/api/v1/reports/preview", {
     method: "POST",
     body: JSON.stringify(request),
   });
