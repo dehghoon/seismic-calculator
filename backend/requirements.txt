@@ -1,0 +1,4 @@
+fastapi==0.141.1
+pydantic>=2.13,<3
+uvicorn[standard]>=0.35,<1
+../vendor/cnbc_seismic_dual_edition-0.1.0-py3-none-any.whl
