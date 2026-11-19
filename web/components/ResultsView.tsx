@@ -102,8 +102,8 @@ function StoreyTable({ output }: { output: Record<string, unknown> }) {
               <tr key={index}>
                 <td>{index + 1}</td>
                 <td>{value.toFixed(3)}</td>
-                <td>{jx[index]?.toFixed?.(3) ?? "—"</td>
-                <td>{mx[index]?.toFixed?.(3) ?? "—"</td>
+                <td>{jx[index]?.toFixed?.(3) ?? "—"}</td>
+                <td>{mx[index]?.toFixed?.(3) ?? "—"}</td>
               </tr>
             ))}
           </tbody>

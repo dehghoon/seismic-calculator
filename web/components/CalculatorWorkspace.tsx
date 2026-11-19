@@ -65,7 +65,7 @@ function parseMatrix(value: string): number[][] {
     });
 }
 
-function buildCommon(value: CommonForm)) {
+function buildCommon(value: CommonForm) {
   const nStoreys = parseNumber(value.nStoreys);
   const elevations = parseList(value.elevations);
   const weights = parseList(value.weights);
@@ -220,7 +220,7 @@ export default function CalculatorWorkspace() {
   useEffect(() => {
     Promise.all([getCatalogOptions(), getLocalities2010(), getSfrs2020()])
       .then(([catalog, localityRows, systems2020]) => {
-        setOptions(Catalog);
+        setOptions(catalog);
         setLocalities(localityRows);
         setSfrs2020(systems2020);
         setInput2010((current) => ({

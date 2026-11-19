@@ -77,7 +77,7 @@ export default function Nbcc2020Panel({
           label="Higher-mode system"
           value={value.higherModeSystem}
           onChange={(item) => set("higherModeSystem", item)}
-          options={options.higher_mode_system_types_2020.map((item) => [item, item))}
+          options={options.higher_mode_system_types_2020.map((item) => [item, item])}
         />
         <SelectField
           label="SFRS"

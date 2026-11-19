@@ -83,6 +83,8 @@ NBCC 2020 is **not approved for company production engineering release**. The va
 
 The application must not remove, downgrade, or hide those release restrictions.
 
+[Earthquakes Canada's NBC seismic hazard tool](https://www.earthquakescanada.nrcan.gc.ca/hazard-alea/interpolat/index-en.php) provides site hazard values by edition. Before enabling location-based model writeback, verify a project hazard benchmark for the applicable edition and site designation. The adapter already accepts explicit hazard values, storey weights, elevations and the selected seismic force-resisting system. Storey dimensions and a location alone do not identify those inputs.
+
 ## Report access status
 
 Core calculations, governing checks, pass/fail state, warnings, limitations, safety/applicability information, and report preview remain available without a report subscription.
