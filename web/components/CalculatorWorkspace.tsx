@@ -207,7 +207,8 @@ function buildRequest(
 
 const modelOrigins = new Set([
   "https://3dmodel.linkoteq.com",
-  "https://3-d-model.vercel.app",
+  "https://3-d-model-jet.vercel.app",
+  "https://3-d-model-structara.vercel.app",
   "https://3-d-model-git-feat-location-driven-snow-structara.vercel.app",
 ]);
 
