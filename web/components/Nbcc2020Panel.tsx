@@ -23,6 +23,11 @@ export default function Nbcc2020Panel({
       title="NBCC 2020"
       note={options.nbcc_2020_hazard_note}
     >
+      <p>
+        <a href="https://earthquakescanada.nrcan.gc.ca/hazard-alea/interpolat/nbc-cnb-en.php" target="_blank" rel="noreferrer">
+          Get site-specific hazard values from Earthquakes Canada
+        </a>
+      </p>
       <div className="fieldGrid">
         <Field
           label="Hazard source ID"

@@ -4,7 +4,8 @@ import "./report-preview.css";
 import "./modal-input.css";
 
 export const metadata = {
-  title: "CNBC Seismic Calculator",
+  title: "Seismic Load Calculator | Linkoteq",
+  robots: { index: false, follow: false },
   description: "NBCC 2010 / NBCC 2020 dual-edition seismic calculation interface",
 };
 

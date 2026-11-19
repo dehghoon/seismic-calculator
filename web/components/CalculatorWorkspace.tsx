@@ -320,8 +320,8 @@ export default function CalculatorWorkspace() {
     <main className="shell">
       <header className="hero">
         <div>
-          <p className="eyebrow">LinkoTech Engineering</p>
-          <h1>CNBC Seismic Calculator</h1>
+          <p className="eyebrow">Linkoteq Engineering Technology</p>
+          <h1>Seismic Load Calculator</h1>
           <p>NBCC 2010 / NBCC 2020 dual-edition seismic calculation workspace</p>
         </div>
         <div className="heroMeta">
@@ -331,10 +331,9 @@ export default function CalculatorWorkspace() {
       </header>
 
       <div className="releaseBanner">
-        <strong>NBCC 2020 production approval is blocked.</strong>
+        <strong>Engineering preview</strong>
         <span>
-          An approved 2020 hazard source/location benchmark and unresolved engineering hold
-          points must be closed before company-approved production release.
+          NBCC 2020 results are for engineering review. The official site benchmark and engineering verification are pending.
         </span>
       </div>
 

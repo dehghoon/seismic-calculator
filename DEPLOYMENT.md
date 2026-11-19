@@ -27,7 +27,7 @@ npm run build
 npm run start
 ```
 
-Configure `NEXT_PUBLIC_API_BASE_URL` with the deployed API origin.
+Configure `SEISMIC_API_ORIGIN` with the deployed API origin at Next.js build time. Browser requests are proxied by Next.js so they use the same origin. For a separately hosted client, `NEXT_PUBLIC_API_BASE_URL` remains available as a direct API override and requires the corresponding API CORS entry.
 
 ## Portability
 
