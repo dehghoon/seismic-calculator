@@ -1,3 +1,4 @@
+import { createElement } from "react";
 import type { ReactNode } from "react";
 import "./globals.css";
 import "./report-preview.css";
@@ -11,8 +12,12 @@ export const metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" data-linkoteq-surface="seismic">
+      <head>
+        <link rel="stylesheet" href="https://www.linkoteq.com/design-system/linkoteq-shell-v1.css" />
+        <script defer src="https://www.linkoteq.com/design-system/linkoteq-header-v1.js" />
+      </head>
+      <body>{createElement("linkoteq-header")}{children}</body>
     </html>
   );
 }

@@ -454,24 +454,26 @@ export default function CalculatorWorkspace() {
         </aside>
       </div>
 
-      {Boolean(payload?.core_static_handoff) && handoff && (
-        <button type="button" onClick={() => {
-          window.opener?.postMessage({
-            type: "linkoteq:seismic-result", token: handoff.token, result: payload?.core_static_handoff,
-          }, handoff.origin);
-        }}>Send static seismic loads to 3D Model</button>
-      )}
-      {payload?.core_static_handoff ? (
-        <button type="button" onClick={() => {
-          const file = new Blob([JSON.stringify(payload.core_static_handoff, null, 2)], { type: "application/json" });
-          const url = URL.createObjectURL(file);
-          const link = document.createElement("a");
-          link.href = url;
-          link.download = "linkoteq-seismic-static.json";
-          link.click();
-          setTimeout(() => URL.revokeObjectURL(url), 1000);
-        }}>Export static seismic loads for model review</button>
-      ) : null}
+      <div className="modelActions">
+        {Boolean(payload?.core_static_handoff) && handoff && (
+          <button type="button" onClick={() => {
+            window.opener?.postMessage({
+              type: "linkoteq:seismic-result", token: handoff.token, result: payload?.core_static_handoff,
+            }, handoff.origin);
+          }}>Send static seismic loads to 3D Model</button>
+        )}
+        {payload?.core_static_handoff ? (
+          <button type="button" onClick={() => {
+            const file = new Blob([JSON.stringify(payload.core_static_handoff, null, 2)], { type: "application/json" });
+            const url = URL.createObjectURL(file);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = "linkoteq-seismic-static.json";
+            link.click();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+          }}>Export static seismic loads for model review</button>
+        ) : null}
+      </div>
       {payload ? <ResultsView payload={payload} /> : null}
     </main>
   );
