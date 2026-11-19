@@ -205,7 +205,23 @@ function buildRequest(
   };
 }
 
+const modelOrigins = new Set([
+  "https://3dmodel.linkoteq.com",
+  "https://3-d-model.vercel.app",
+  "https://3-d-model-git-feat-location-driven-snow-structara.vercel.app",
+]);
+
 export default function CalculatorWorkspace() {
+  const [handoff, setHandoff] = useState<{ origin: string; token: string } | null>(null);
+  useEffect(() => {
+    if (!window.opener) return;
+    const params = new URLSearchParams(window.location.search);
+    const origin = params.get("modelOrigin");
+    const token = params.get("handoffToken");
+    if (origin && modelOrigins.has(origin) && token && /^[0-9a-f-]{36}$/.test(token)) {
+      setHandoff({ origin, token });
+    }
+  }, []);
   const [mode, setMode] = useState<Mode>("NBCC_2020");
   const [common, setCommon] = useState(COMMON_INITIAL);
   const [input2010, setInput2010] = useState(NBCC_2010_INITIAL);
@@ -437,6 +453,13 @@ export default function CalculatorWorkspace() {
         </aside>
       </div>
 
+      {Boolean(payload?.core_static_handoff) && handoff && (
+        <button type="button" onClick={() => {
+          window.opener?.postMessage({
+            type: "linkoteq:seismic-result", token: handoff.token, result: payload?.core_static_handoff,
+          }, handoff.origin);
+        }}>Send static seismic loads to 3D Model</button>
+      )}
       {payload?.core_static_handoff ? (
         <button type="button" onClick={() => {
           const file = new Blob([JSON.stringify(payload.core_static_handoff, null, 2)], { type: "application/json" });

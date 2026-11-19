@@ -1,3 +1,5 @@
+from math import isclose
+
 from fastapi.testclient import TestClient
 
 from backend.app.main import app
@@ -85,3 +87,14 @@ def test_core_handoff_requires_complete_static_forces_and_torsion():
     assert [row["torsionPlusKNm"] for row in handoff["storeys"]] == outputs["torsion"]["Tx_plus_kNm"]
     assert [row["torsionMinusKNm"] for row in handoff["storeys"]] == outputs["torsion"]["Tx_minus_kNm"]
     assert handoff["hazardSourceId"] == "project-hazard-rev-A"
+
+
+def test_vertical_force_distribution_balances_base_shear():
+    response = client.post("/api/v1/calculations", json=valid_2020_request())
+    assert response.status_code == 200
+    data = response.json()
+    assert data["common_inputs"]["storey_heights_m"] == [3.0, 6.0, 9.0]
+    static = data["results_by_edition"]["NBCC_2020"]["outputs"]["static"]
+    assert len(static["Fx_kN"]) == 3
+    assert isclose(sum(static["Fx_kN"]), static["V_kN"])
+    assert static["Fx_kN"][-1] >= static["Ft_kN"]
