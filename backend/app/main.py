@@ -15,6 +15,7 @@ except ModuleNotFoundError as error:
     if error.name != "cnbc_seismic_dual_edition":
         raise
     catalog_router = None
+from .core_handoff import static_core_handoff
 from .reporting import build_preview
 from .schemas import CalculationRequest
 
@@ -77,7 +78,11 @@ def version() -> dict[str, str]:
 def run_calculation(request: CalculationRequest) -> dict[str, Any]:
     require_engine()
     payload = calculate(to_engine_request(request))
-    return payload.to_dict()
+    result = payload.to_dict()
+    handoff = static_core_handoff(request, result)
+    if handoff is not None:
+        result["core_static_handoff"] = handoff
+    return result
 
 
 @app.post("/api/v1/reports/preview")

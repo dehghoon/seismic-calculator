@@ -89,6 +89,12 @@ export default function Nbcc2020Panel({
           ])}
         />
         <Field
+          label="Storey eccentricities from base to roof"
+          value={value.storeyEccentricities}
+          unit="m, comma-separated"
+          onChange={(item) => set("storeyEccentricities", item)}
+        />
+        <Field
           label="Mechanical period, if supplied"
           value={value.mechanicalPeriod}
           unit="s"

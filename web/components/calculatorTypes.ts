@@ -35,6 +35,7 @@ export type Nbcc2010Form = {
 };
 
 export type Nbcc2020Form = {
+  storeyEccentricities: string;
   hazardSourceId: string;
   siteDesignation: string;
   sa02: string;
@@ -97,6 +98,7 @@ export const NBCC_2010_INITIAL: Nbcc2010Form = {
 };
 
 export const NBCC_2020_INITIAL: Nbcc2020Form = {
+  storeyEccentricities: "",
   hazardSourceId: "project-2020-hazard-rev-A",
   siteDesignation: "XD",
   sa02: "0.40",

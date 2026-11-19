@@ -69,3 +69,19 @@ def test_formal_pdf_fails_closed_without_auth_integration():
     response = client.post("/api/v1/reports/pdf")
     assert response.status_code == 503
     assert response.json()["detail"]["code"] == "REPORT_ENTITLEMENT_NOT_CONFIGURED"
+
+
+def test_core_handoff_requires_complete_static_forces_and_torsion():
+    request = valid_2020_request()
+    no_torsion = client.post("/api/v1/calculations", json=request).json()
+    assert "core_static_handoff" not in no_torsion
+    request["nbcc_2020"]["ex_by_level_m"] = [0.1, 0.1, 0.1]
+    response = client.post("/api/v1/calculations", json=request)
+    assert response.status_code == 200
+    result = response.json()
+    handoff = result["core_static_handoff"]
+    outputs = result["results_by_edition"]["NBCC_2020"]["outputs"]
+    assert [row["forceKN"] for row in handoff["storeys"]] == outputs["static"]["Fx_kN"]
+    assert [row["torsionPlusKNm"] for row in handoff["storeys"]] == outputs["torsion"]["Tx_plus_kNm"]
+    assert [row["torsionMinusKNm"] for row in handoff["storeys"]] == outputs["torsion"]["Tx_minus_kNm"]
+    assert handoff["hazardSourceId"] == "project-hazard-rev-A"

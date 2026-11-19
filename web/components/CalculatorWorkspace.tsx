@@ -163,6 +163,7 @@ function build2020(value: Nbcc2020Form) {
     importance_category: value.importanceCategory,
     period_system_type: value.periodSystem,
     sfrs_id_2020: value.sfrsId,
+    ex_by_level_m: value.storeyEccentricities.trim() ? parseList(value.storeyEccentricities) : undefined,
     higher_mode_system_type: value.higherModeSystem,
     irregularity_flags: value.irregularities,
     nonorthogonal_sfrs: value.nonorthogonalSfrs,
@@ -437,6 +438,17 @@ export default function CalculatorWorkspace() {
         </aside>
       </div>
 
+      {payload?.core_static_handoff ? (
+        <button type="button" onClick={() => {
+          const file = new Blob([JSON.stringify(payload.core_static_handoff, null, 2)], { type: "application/json" });
+          const url = URL.createObjectURL(file);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = "linkoteq-seismic-static.json";
+          link.click();
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }}>Export static seismic loads for model review</button>
+      ) : null}
       {payload ? <ResultsView payload={payload} /> : null}
     </main>
   );
