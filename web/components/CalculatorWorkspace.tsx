@@ -65,7 +65,7 @@ function parseMatrix(value: string): number[][] {
     });
 }
 
-function buildCommon(value: CommonForm)) {
+function buildCommon(value: CommonForm) {
   const nStoreys = parseNumber(value.nStoreys);
   const elevations = parseList(value.elevations);
   const weights = parseList(value.weights);
@@ -163,6 +163,7 @@ function build2020(value: Nbcc2020Form) {
     importance_category: value.importanceCategory,
     period_system_type: value.periodSystem,
     sfrs_id_2020: value.sfrsId,
+    ex_by_level_m: value.storeyEccentricities.trim() ? parseList(value.storeyEccentricities) : undefined,
     higher_mode_system_type: value.higherModeSystem,
     irregularity_flags: value.irregularities,
     nonorthogonal_sfrs: value.nonorthogonalSfrs,
@@ -204,7 +205,23 @@ function buildRequest(
   };
 }
 
+const modelOrigins = new Set([
+  "https://3dmodel.linkoteq.com",
+  "https://3-d-model.vercel.app",
+  "https://3-d-model-git-feat-location-driven-snow-structara.vercel.app",
+]);
+
 export default function CalculatorWorkspace() {
+  const [handoff, setHandoff] = useState<{ origin: string; token: string } | null>(null);
+  useEffect(() => {
+    if (!window.opener) return;
+    const params = new URLSearchParams(window.location.search);
+    const origin = params.get("modelOrigin");
+    const token = params.get("handoffToken");
+    if (origin && modelOrigins.has(origin) && token && /^[0-9a-f-]{36}$/.test(token)) {
+      setHandoff({ origin, token });
+    }
+  }, []);
   const [mode, setMode] = useState<Mode>("NBCC_2020");
   const [common, setCommon] = useState(COMMON_INITIAL);
   const [input2010, setInput2010] = useState(NBCC_2010_INITIAL);
@@ -220,7 +237,7 @@ export default function CalculatorWorkspace() {
   useEffect(() => {
     Promise.all([getCatalogOptions(), getLocalities2010(), getSfrs2020()])
       .then(([catalog, localityRows, systems2020]) => {
-        setOptions(Catalog);
+        setOptions(catalog);
         setLocalities(localityRows);
         setSfrs2020(systems2020);
         setInput2010((current) => ({
@@ -319,8 +336,8 @@ export default function CalculatorWorkspace() {
     <main className="shell">
       <header className="hero">
         <div>
-          <p className="eyebrow">LinkoTech Engineering</p>
-          <h1>CNBC Seismic Calculator</h1>
+          <p className="eyebrow">Linkoteq Engineering Technology</p>
+          <h1>Seismic Load Calculator</h1>
           <p>NBCC 2010 / NBCC 2020 dual-edition seismic calculation workspace</p>
         </div>
         <div className="heroMeta">
@@ -330,10 +347,9 @@ export default function CalculatorWorkspace() {
       </header>
 
       <div className="releaseBanner">
-        <strong>NBCC 2020 production approval is blocked.</strong>
+        <strong>Engineering preview</strong>
         <span>
-          An approved 2020 hazard source/location benchmark and unresolved engineering hold
-          points must be closed before company-approved production release.
+          NBCC 2020 results are for engineering review. The official site benchmark and engineering verification are pending.
         </span>
       </div>
 
@@ -437,6 +453,24 @@ export default function CalculatorWorkspace() {
         </aside>
       </div>
 
+      {Boolean(payload?.core_static_handoff) && handoff && (
+        <button type="button" onClick={() => {
+          window.opener?.postMessage({
+            type: "linkoteq:seismic-result", token: handoff.token, result: payload?.core_static_handoff,
+          }, handoff.origin);
+        }}>Send static seismic loads to 3D Model</button>
+      )}
+      {payload?.core_static_handoff ? (
+        <button type="button" onClick={() => {
+          const file = new Blob([JSON.stringify(payload.core_static_handoff, null, 2)], { type: "application/json" });
+          const url = URL.createObjectURL(file);
+          const link = document.createElement("a");
+          link.href = url;
+          link.download = "linkoteq-seismic-static.json";
+          link.click();
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+        }}>Export static seismic loads for model review</button>
+      ) : null}
       {payload ? <ResultsView payload={payload} /> : null}
     </main>
   );

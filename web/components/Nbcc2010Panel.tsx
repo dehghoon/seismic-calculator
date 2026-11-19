@@ -108,7 +108,7 @@ export default function Nbcc2010Panel({
           label="Material / standard group"
           value={value.materialGroup}
           onChange={(item) => onChange({ ...value, materialGroup: item, sfrsIndex: "" })}
-          options={options.material_standard_groups_2010.map((item) => [item, item))}
+          options={options.material_standard_groups_2010.map((item) => [item, item])}
         />
         <SelectField
           label="SFRS"

@@ -23,6 +23,11 @@ export default function Nbcc2020Panel({
       title="NBCC 2020"
       note={options.nbcc_2020_hazard_note}
     >
+      <p>
+        <a href="https://earthquakescanada.nrcan.gc.ca/hazard-alea/interpolat/nbc-cnb-en.php" target="_blank" rel="noreferrer">
+          Get site-specific hazard values from Earthquakes Canada
+        </a>
+      </p>
       <div className="fieldGrid">
         <Field
           label="Hazard source ID"
@@ -77,7 +82,7 @@ export default function Nbcc2020Panel({
           label="Higher-mode system"
           value={value.higherModeSystem}
           onChange={(item) => set("higherModeSystem", item)}
-          options={options.higher_mode_system_types_2020.map((item) => [item, item))}
+          options={options.higher_mode_system_types_2020.map((item) => [item, item])}
         />
         <SelectField
           label="SFRS"
@@ -87,6 +92,12 @@ export default function Nbcc2020Panel({
             item.id,
             `${item.name} · Rd ${item.Rd} · Ro ${item.Ro}`,
           ])}
+        />
+        <Field
+          label="Storey eccentricities from base to roof"
+          value={value.storeyEccentricities}
+          unit="m, comma-separated"
+          onChange={(item) => set("storeyEccentricities", item)}
         />
         <Field
           label="Mechanical period, if supplied"

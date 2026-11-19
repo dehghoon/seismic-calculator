@@ -83,27 +83,34 @@ function SpectrumPlot({ spectrum }: { spectrum: unknown }) {
   );
 }
 
-function StoreyTable({ output }: { output: Record<string, unknown> }) {
+function StoreyTable({ output, heights }: { output: Record<string, unknown>; heights: number[] }) {
   const staticResult = output.static as Record<string, unknown> | undefined;
   const fx = staticResult?.Fx_kN as number[] | undefined;
   if (!fx?.length) return null;
+  const cumulativeShear = fx.reduceRight<number[]>((values, force, index) => {
+    values[index] = force + (values[index + 1] ?? 0);
+    return values;
+  }, []);
   const jx = (staticResult?.Jx as number[] | undefined) ?? [];
   const mx = (staticResult?.Mx_kNm as number[] | undefined) ?? [];
   return (
     <div className="tableCard wide">
-      <h3>Storey force distribution</h3>
+      <h3>Vertical distribution of seismic forces</h3>
+      <p>Equivalent static forces by elevation above the seismic base. The roof force includes the engine’s top force, Ft.</p>
       <div className="tableScroll">
         <table>
           <thead>
-            <tr><th>Level</th><th>Fx (kN)</th><th>Jx</th><th>Mx (kN·m)</th></tr>
+            <tr><th>Storey</th><th>Height (m)</th><th>Fx (kN)</th><th>Storey shear (kN)</th><th>Jx</th><th>Mx (kN·m)</th></tr>
           </thead>
           <tbody>
             {fx.map((value, index) => (
               <tr key={index}>
                 <td>{index + 1}</td>
+                <td>{heights[index]?.toFixed(3) ?? "—"}</td>
                 <td>{value.toFixed(3)}</td>
-                <td>{jx[index]?.toFixed?.(3) ?? "—"</td>
-                <td>{mx[index]?.toFixed?.(3) ?? "—"</td>
+                <td>{cumulativeShear[index].toFixed(3)}</td>
+                <td>{jx[index]?.toFixed?.(3) ?? "—"}</td>
+                <td>{mx[index]?.toFixed?.(3) ?? "—"}</td>
               </tr>
             ))}
           </tbody>
@@ -113,7 +120,7 @@ function StoreyTable({ output }: { output: Record<string, unknown> }) {
   );
 }
 
-function EditionSection({ edition, result }: { edition: string; result: EditionResult }) {
+function EditionSection({ edition, result, heights }: { edition: string; result: EditionResult; heights: number[] }) {
   const output = (result.outputs ?? {}) as Record<string, unknown>;
   return (
     <section className="editionResult">
@@ -133,7 +140,7 @@ function EditionSection({ edition, result }: { edition: string; result: EditionR
         <ScalarTable title="Higher-mode parameters" value={output.higher_mode} />
         <ScalarTable title="Equivalent static base shear" value={output.static} />
         <ScalarTable title="Applicability" value={output.applicability} />
-        <StoreyTable output={output} />
+        <StoreyTable output={output} heights={heights} />
       </div>
     </section>
   );
@@ -231,6 +238,8 @@ function ReportPreview({ payload }: { payload: CalculationPayload }) {
 }
 
 export default function ResultsView({ payload }: { payload: CalculationPayload }) {
+  const common = payload.common_inputs as { storey_heights_m?: number[] } | undefined;
+  const heights = common?.storey_heights_m ?? [];
   return (
     <section className="resultsArea">
       <div className="resultsTitle">
@@ -239,7 +248,7 @@ export default function ResultsView({ payload }: { payload: CalculationPayload }
       </div>
 
       {Object.entries(payload.results_by_edition).map(([edition, result]) => (
-        <EditionSection edition={edition} result={result} key={edition} />
+        <EditionSection edition={edition} result={result} heights={heights} key={edition} />
       ))}
 
       {payload.comparison ? (
