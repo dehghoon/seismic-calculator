@@ -1,3 +1,4 @@
+import { toolAuthorization } from "./tool-session";
 export type CheckRecord = {
   edition?: string;
   status?: string;
@@ -115,6 +116,7 @@ async function requestJson<T>(
     ...init,
     headers: {
       "Content-Type": "application/json",
+      ...toolAuthorization(),
       ...(init?.headers ?? {}),
     },
   });
