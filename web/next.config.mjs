@@ -1,4 +1,5 @@
-const apiOrigin = process.env.SEISMIC_API_ORIGIN ?? "http://localhost:8000";
+const apiOrigin = process.env.SEISMIC_API_ORIGIN ??
+  (process.env.NODE_ENV === "development" ? "http://localhost:8000" : "https://linkoteq-seismic-api.vercel.app");
 
 export default {
   async rewrites() {
