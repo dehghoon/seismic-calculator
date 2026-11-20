@@ -31,6 +31,9 @@ else:
     def unavailable_catalog(path: str) -> None:
         require_engine()
 
+from .tool_auth import protect_api
+app.middleware("http")(protect_api)
+
 allowed_origins = [value.strip() for value in os.getenv("API_ALLOWED_ORIGINS", "http://localhost:3000").split(",") if value.strip()]
 app.add_middleware(
     CORSMiddleware,
