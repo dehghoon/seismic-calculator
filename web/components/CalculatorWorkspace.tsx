@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 
 import {
   getCatalogOptions,
@@ -17,6 +17,8 @@ import {
 import { Field, FormSection } from "./FieldControls";
 import Nbcc2010Panel from "./Nbcc2010Panel";
 import Nbcc2020Panel from "./Nbcc2020Panel";
+import LoadWorkspace,{DraftReport} from "./LoadWorkspace";
+import InputGuide from "./InputGuide";
 import ResultsView from "./ResultsView";
 import {
   COMMON_INITIAL,
@@ -223,6 +225,8 @@ export default function CalculatorWorkspace() {
       setHandoff({ origin, token });
     }
   }, []);
+  const revision=useRef(0);
+  function invalidate(){++revision.current;setPayload(null);setLoading(false);setError("");}
   const [mode, setMode] = useState<Mode>("NBCC_2020");
   const [common, setCommon] = useState(COMMON_INITIAL);
   const [input2010, setInput2010] = useState(NBCC_2010_INITIAL);
@@ -313,12 +317,14 @@ export default function CalculatorWorkspace() {
   ]);
 
   async function calculate() {
+    const rev=++revision.current;
     setLoading(true);
     setError("");
     setPayload(null);
     try {
       const request = buildRequest(mode, common, input2010, input2020);
       const result = await runCalculation(request);
+      if(rev!==revision.current)return;
       setPayload({
         ...result,
         calculation_request:
@@ -327,9 +333,9 @@ export default function CalculatorWorkspace() {
             : (request as Record<string, unknown>),
       });
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Calculation failed.");
+      if(rev===revision.current)setError(cause instanceof Error ? cause.message : "Calculation failed.");
     } finally {
-      setLoading(false);
+      if(rev===revision.current)setLoading(false);
     }
   }
 
@@ -354,7 +360,7 @@ export default function CalculatorWorkspace() {
         </span>
       </div>
 
-      <nav className="modeTabs" aria-label="Calculation mode">
+      <LoadWorkspace input={<>      <nav className="modeTabs" aria-label="Calculation mode">
         {(
           [
             ["NBCC_2010", "NBCC 2010"],
@@ -365,7 +371,7 @@ export default function CalculatorWorkspace() {
           <button
             type="button"
             className={mode === value ? "active" : ""}
-            onClick={() => setMode(value)}
+            onClick={() => {invalidate();setMode(value);}}
             key={value}
           >
             {label}
@@ -373,8 +379,7 @@ export default function CalculatorWorkspace() {
         ))}
       </nav>
 
-      <div className="workspace">
-        <div className="formStack">
+        <div className="formStack" onChange={invalidate}>
           <FormSection
             title="Building model"
             note="Only geometry and load data demonstrably common to the same building model are shared between editions."
@@ -391,7 +396,7 @@ export default function CalculatorWorkspace() {
           {mode !== "NBCC_2020" && options ? (
             <Nbcc2010Panel
               value={input2010}
-              onChange={setInput2010}
+              onChange={value=>{invalidate();setInput2010(value);}}
               options={options}
               localities={localities}
               sfrs={sfrs2010}
@@ -401,7 +406,7 @@ export default function CalculatorWorkspace() {
           {mode !== "NBCC_2010" && options ? (
             <Nbcc2020Panel
               value={input2020}
-              onChange={setInput2020}
+              onChange={value=>{invalidate();setInput2020(value);}}
               options={options}
               sfrs={sfrs2020}
             />
@@ -411,7 +416,7 @@ export default function CalculatorWorkspace() {
 
           <div className="runBar">
             <div>
-              <strong>Core engineering calculations and safety results remain available to all users.</strong>
+              <strong>Run the selected edition with your approved account access.</strong>
               <span>Formal PDF generation remains server-authorized and entitlement-controlled.</span>
             </div>
             <button
@@ -429,32 +434,7 @@ export default function CalculatorWorkspace() {
           </div>
         </div>
 
-        <aside className="sidebar">
-          <div className="sideCard">
-            <p className="eyebrow">Edition separation</p>
-            <h3>No cross-edition engineering data</h3>
-            <p>
-              Hazard, SFRS, higher-mode data, restrictions, and formula logic remain
-              edition-scoped.
-            </p>
-          </div>
-          <div className="sideCard">
-            <p className="eyebrow">Safety</p>
-            <h3>Warnings are never paywalled</h3>
-            <p>Failed checks, invalid inputs, limitations, and applicability messages remain visible.</p>
-          </div>
-          <div className="sideCard">
-            <p className="eyebrow">Dynamic input</p>
-            <h3>Modal data stays external</h3>
-            <p>
-              When response-spectrum analysis is enabled, the UI only accepts modal data
-              produced by the structural analysis model and passes it unchanged to the validated engine.
-            </p>
-          </div>
-        </aside>
-      </div>
-
-      <div className="modelActions">
+</>} results={<>{payload?<ResultsView payload={payload} view="results"/>:<section className="panel"><h2>Results</h2><p>Run a calculation to review the spectrum, base shear, floor forces and warnings.</p></section>}      <div className="modelActions">
         {Boolean(payload?.core_static_handoff) && handoff && (
           <button type="button" onClick={() => {
             window.opener?.postMessage({
@@ -474,7 +454,7 @@ export default function CalculatorWorkspace() {
           }}>Export static seismic loads for model review</button>
         ) : null}
       </div>
-      {payload ? <ResultsView payload={payload} /> : null}
+</>} report={<><DraftReport title="Seismic load calculation" inputs={payload?.calculation_request} result={payload} formula="V = S(Ta) · Mv · IE · W / (Rd · Ro), subject to code limits and applicability"/>{payload&&<ResultsView payload={payload} view="report"/>}</>} guide={<InputGuide/>}/>
     </main>
   );
 }

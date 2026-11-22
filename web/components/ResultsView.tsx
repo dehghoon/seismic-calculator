@@ -129,7 +129,7 @@ function EditionSection({ edition, result, heights }: { edition: string; result:
           <p className="eyebrow">Calculation result</p>
           <h2>{edition.replace("_", " ")}</h2>
         </div>
-        <span className="statusPill">Validated engine output</span>
+        <span className="statusPill">Beta engine output</span>
       </div>
       <div className="resultGrid">
         <SpectrumPlot spectrum={output.spectrum} />
@@ -237,7 +237,8 @@ function ReportPreview({ payload }: { payload: CalculationPayload }) {
   );
 }
 
-export default function ResultsView({ payload }: { payload: CalculationPayload }) {
+export default function ResultsView({ payload,view="results" }: { payload: CalculationPayload;view?:"results"|"report" }) {
+  if(view==="report")return <ReportPreview payload={payload}/>;
   const common = payload.common_inputs as { storey_heights_m?: number[] } | undefined;
   const heights = common?.storey_heights_m ?? [];
   return (
@@ -272,9 +273,10 @@ export default function ResultsView({ payload }: { payload: CalculationPayload }
         ))}</div>
       </div>
 
-      <ReportPreview payload={payload} />
+
 
       <details className="rawPayload"><summary>Traceable calculation payload</summary><pre>{JSON.stringify(payload, null, 2)}</pre></details>
     </section>
   );
 }
+

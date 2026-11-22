@@ -2,6 +2,7 @@ import { createElement } from "react";
 import type { ReactNode } from "react";
 import "./globals.css";
 import "./linkoteq-theme.css";
+import "./snow-workspace.css";
 import "./report-preview.css";
 import "./modal-input.css";
 
@@ -21,3 +22,4 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
     </html>
   );
 }
+
