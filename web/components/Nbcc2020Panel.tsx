@@ -1,5 +1,6 @@
 "use client";
 
+import ProjectLocation from "./ProjectLocation";
 import type { CatalogOptions, Sfrs2020 } from "../lib/api";
 import { Field, FormSection, SelectField, Toggle } from "./FieldControls";
 import type { Nbcc2020Form } from "./calculatorTypes";
@@ -23,6 +24,7 @@ export default function Nbcc2020Panel({
       title="NBCC 2020"
       note={options.nbcc_2020_hazard_note}
     >
+      <ProjectLocation onReference={(reference,site)=>onChange({...value,hazardSourceId:reference,siteDesignation:site})}/>
       <p>
         <a href="https://earthquakescanada.nrcan.gc.ca/hazard-alea/interpolat/nbc-cnb-en.php" target="_blank" rel="noreferrer">
           Get site-specific hazard values from Earthquakes Canada
@@ -146,3 +148,4 @@ export default function Nbcc2020Panel({
     </FormSection>
   );
 }
+
